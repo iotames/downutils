@@ -1,0 +1,6 @@
+.env
+env.default
+go.sum
+*.exe
+*.log
+runtime/
