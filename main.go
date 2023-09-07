@@ -9,8 +9,9 @@ import (
 
 func main() {
 	fyne.NewFyneApp(&fyne.FyneConf{
+		Title:            conf.FyneTitle,
 		FyneLogoResource: fy.NewStaticResource("logo.png", logopng),
-		FyneFontResource: fy.NewStaticResource("SourceHanSans-Bold.ttf", fyfont),
+		FyneFontResource: fy.NewStaticResource("OPPOSans-H.ttf", fyfont),
 	}).Start()
 }
 

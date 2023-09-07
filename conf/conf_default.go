@@ -22,6 +22,8 @@ const DEFAULT_PARALLELISM = 12
 const DEFAULT_IMAGES_PATH = "runtime/images"
 const DEFAULT_DOWNLOADS_PATH = "runtime/downloads"
 const DEFAULT_RUNTIME_DIR = "runtime"
+const DEFAULT_FYNE_FONT = "resource/fonts/OPPOSans-H.ttf"
+const DEFAULT_FYNE_TITLE = "DownUtils"
 
 const ENV_FILE_CONTENT = `# 此文件由系统自动创建，配置项为默认值。可修改本目录下的 .env 文件，以更新默认值。
 # DB_DRIVER support: mysql,sqlite3,postgres
@@ -48,6 +50,8 @@ PARALLELISM = %d
 RUNTIME_DIR = "%s"
 IMAGES_PATH = "%s"
 DOWNLOADS_DIR = "%s"
+FYNE_FONT = "%s"
+FYNE_TITLE = "%s"
 `
 
 func getAllConfEnvStrDefault() string {
@@ -55,5 +59,5 @@ func getAllConfEnvStrDefault() string {
 		DEFAULT_DB_NAME, DEFAULT_DB_USERNAME, DEFAULT_DB_PASSWORD, DEFAULT_DB_NODE_ID,
 		DEFAULT_USER_AGENT, "", "", DEFAULT_TIMEOUT, DEFAULT_RETRY_TIMES, DEFAULT_DELAY,
 		DEFAULT_RANDOM_DELAY, DEFAULT_PARALLELISM, DEFAULT_RUNTIME_DIR, DEFAULT_IMAGES_PATH,
-		DEFAULT_DOWNLOADS_PATH)
+		DEFAULT_DOWNLOADS_PATH, DEFAULT_FYNE_FONT, DEFAULT_FYNE_TITLE)
 }

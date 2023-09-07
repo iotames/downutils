@@ -11,12 +11,12 @@ const ENV_PROD = "prod"
 const ENV_DEV = "dev"
 const ENV_FILE = ".env"
 
-var envFile string
+var WorkEnvFile string
 
 func setEnvFile() {
-	envFile = os.Getenv("DUTI_ENV_FILE")
-	if envFile == "" {
-		envFile = ENV_FILE
+	WorkEnvFile = os.Getenv("DUTI_ENV_FILE")
+	if WorkEnvFile == "" {
+		WorkEnvFile = ENV_FILE
 	}
 }
 
@@ -24,16 +24,16 @@ func initEnvFile() []string {
 	var err error
 	var files []string
 	var createNewEnvfile bool
-	if !miniutils.IsPathExists(envFile) {
-		err = createEnvFile(envFile)
+	if !miniutils.IsPathExists(WorkEnvFile) {
+		err = createEnvFile(WorkEnvFile)
 		if err != nil {
 			panic(err)
 		}
-		files = append(files, envFile)
-		fmt.Printf("Create file %s SUCCESS\n", envFile)
+		files = append(files, WorkEnvFile)
+		fmt.Printf("Create file %s SUCCESS\n", WorkEnvFile)
 		createNewEnvfile = true
 	}
-	files = append(files, envFile)
+	files = append(files, WorkEnvFile)
 
 	if miniutils.IsPathExists(DEFAULT_ENV_FILE) {
 		files = append(files, DEFAULT_ENV_FILE)

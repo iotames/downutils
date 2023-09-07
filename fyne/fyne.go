@@ -5,12 +5,12 @@ package fyne
 
 import (
 	"log"
-	"os"
 	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/theme"
+	"github.com/iotames/downutils/conf"
+	"github.com/iotames/miniutils"
 )
 
 type FyneConf struct {
@@ -26,24 +26,14 @@ type FyneApp struct {
 }
 
 func NewFyneApp(conf *FyneConf) *FyneApp {
-	// if conf.FyneFont == "" && lenfont == 0 {
-	// 	conf.FyneFont = "resource/fonts/SourceHanSans-Bold.ttf"
-	// }
-	if conf.FyneLogoResource == nil {
-		conf.FyneLogoResource = theme.FyneLogo()
-	}
-	if conf.Title == "" {
-		conf.Title = "下载小工具"
-	}
 	return &FyneApp{Conf: conf}
 }
 
 func (f *FyneApp) Start() {
 	app := app.New()
 	app.SetIcon(f.Conf.FyneLogoResource)
-	fyneFontEnv := os.Getenv("FYNE_FONT")
-	log.Printf("---Start--fyneFontEnv(%s)----\n", fyneFontEnv)
-	if !strings.Contains(fyneFontEnv, ".ttf") {
+	log.Printf("---Start--SetEnv(FYNE_FONT:%s)FromFile(%s)----\n", conf.FyneFont, conf.WorkEnvFile)
+	if !strings.Contains(conf.FyneFont, ".ttf") || !miniutils.IsPathExists(conf.FyneFont) {
 		log.Printf("---Start--SetThemeByFyneFontResource(%s)----\n", f.Conf.FyneFontResource.Name())
 		app.Settings().SetTheme(NewFyneTheme(f.Conf.FyneFontResource))
 	}

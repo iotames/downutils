@@ -9,12 +9,14 @@ import (
 	"github.com/iotames/miniutils"
 )
 
-var userAgent, imgsPath, cookie, httpProxy, runtimeDir, downloadsPath string
+var userAgent, imgsPath, cookie, httpProxy, runtimeDir, downloadsPath, FyneFont, FyneTitle string
 var timeout, retry, delay, randomDelay, parallelism int
 var dbDriver, dbName, dbUsername, dbPassword, dbHost string
 var dbPort, dbNodeId int
 
 func getConfByEnv() {
+	FyneTitle = getEnvDefaultStr("FYNE_TITLE", DEFAULT_FYNE_TITLE)
+	FyneFont = getEnvDefaultStr("FYNE_FONT", DEFAULT_FYNE_FONT)
 	runtimeDir = getEnvDefaultStr("RUNTIME_DIR", DEFAULT_RUNTIME_DIR)
 	downloadsPath = getEnvDefaultStr("DOWNLOADS_DIR", DEFAULT_DOWNLOADS_PATH)
 	imgsPath = getEnvDefaultStr("IMAGES_PATH", DEFAULT_IMAGES_PATH)
@@ -37,7 +39,7 @@ func getConfByEnv() {
 
 func checkRuntimeDir() {
 	logger := GetLogger()
-	hitmsg := fmt.Sprintf("请检查配置文件，路径:(%s)\n", envFile)
+	hitmsg := fmt.Sprintf("请检查配置文件，路径:(%s)\n", WorkEnvFile)
 
 	if runtimeDir == "" {
 		hitmsg += "RuntimeDir 配置项不能为空"
