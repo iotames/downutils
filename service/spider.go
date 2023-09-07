@@ -220,12 +220,12 @@ func GetLocalImageFileName(url string) string {
 func (s *SiteSpider) GetLocalFile(fileUrl, dirname, fileExt string) string {
 	filename := miniutils.Md5(fileUrl) + fileExt
 	imageExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}
-	basePath := conf.DEFAULT_DOWNLOADS_PATH
+	basePath := s.sconf.DownloadsPath
 	imgIndex := miniutils.GetIndexOf[string](fileExt, imageExts)
 	if imgIndex > -1 {
 		basePath = s.sconf.ImagesPath
 	}
-	localFilePath := fmt.Sprintf(basePath+"/%s/%s", dirname, filename)
+	localFilePath := fmt.Sprintf("%s/%s/%s", basePath, dirname, filename)
 	// modTime, err := GetFileModTime(localFilePath)
 	return localFilePath
 }

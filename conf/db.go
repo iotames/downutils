@@ -2,9 +2,12 @@ package conf
 
 import (
 	"fmt"
-	"os"
-	"strconv"
 )
+
+const DRIVER_SQLITE3 = "sqlite3"
+const DRIVER_MYSQL = "mysql"
+const DRIVER_POSTGRES = "postgres"
+const SQLITE_FILENAME = "sqlite3.db"
 
 type Database struct {
 	Driver, Host, Username, Password, Name string
@@ -12,22 +15,7 @@ type Database struct {
 }
 
 func GetDatabase() Database {
-	dbDriver := os.Getenv("DB_DRIVER")
-	username := os.Getenv("DB_USERNAME")
-	password := os.Getenv("DB_PASSWORD")
-	host := os.Getenv("DB_HOST")
-	portStr := os.Getenv("DB_PORT")
-	nodeIdStr := os.Getenv("DB_NODE_ID")
-	dbname := os.Getenv("DB_NAME")
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		panic("Error: Fail To Get DB_PORT," + err.Error())
-	}
-	nodeID, err := strconv.Atoi(nodeIdStr)
-	if err != nil {
-		panic("Error: Fail To Get DB_NODE_ID," + err.Error())
-	}
-	return Database{Driver: dbDriver, Host: host, Username: username, Password: password, Name: dbname, Port: port, NodeID: nodeID}
+	return Database{Driver: dbDriver, Host: dbHost, Username: dbUsername, Password: dbPassword, Name: dbName, Port: dbPort, NodeID: dbNodeId}
 }
 
 func (d Database) GetAddr() string {

@@ -62,10 +62,8 @@ or
 
 > https://github.com/lusingander/fyne-font-example
 
-由于思源黑体 /思源宋体都是 OTF 格式，把字体做成 TTF 格式了，有人已经做好了转换，并把字库放在了 GitHub 上面：
+由于思源字体是 `OTF` 格式，有人已转换成了 `TTF` 格式，感谢无私分享的网友们：
 
-https://github.com/be5invis/source-han-sans-ttf/releases
-
-https://github.com/junmer/source-han-serif-ttf
-
-https://github.com/Pal3love/Source-Han-TrueType
+- https://github.com/be5invis/source-han-sans-ttf/releases
+- https://github.com/junmer/source-han-serif-ttf
+- https://github.com/Pal3love/Source-Han-TrueType
