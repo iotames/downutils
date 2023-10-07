@@ -20,6 +20,7 @@ func getConfByEnv() {
 	runtimeDir = getEnvDefaultStr("RUNTIME_DIR", DEFAULT_RUNTIME_DIR)
 	downloadsPath = getEnvDefaultStr("DOWNLOADS_DIR", DEFAULT_DOWNLOADS_PATH)
 	imgsPath = getEnvDefaultStr("IMAGES_PATH", DEFAULT_IMAGES_PATH)
+	httpProxy = getEnvDefaultStr("HTTP_PROXY", DEFAULT_HTTP_PROXY)
 	userAgent = getEnvDefaultStr("USER_AGENT", DEFAULT_USER_AGENT)
 	timeout = getEnvDefaultInt("TIMEOUT", DEFAULT_TIMEOUT)
 	retry = getEnvDefaultInt("RETRY_TIMES", DEFAULT_RETRY_TIMES)

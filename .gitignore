@@ -3,4 +3,7 @@ env.default
 go.sum
 *.exe
 *.log
+*.zip
+*.tar.gz
+*.tar.xz
 runtime/
