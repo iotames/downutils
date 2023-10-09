@@ -92,9 +92,12 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 				fprogress.Max = float64(len(imgs))
 				fprogress.SetValue(0)
 				go func() {
-					service.DownloadImagesByExcel(fpath, sheetInput.Text, imgtitleInput.Text, refererUrl, strings.TrimSpace(dname), newXlsxWithPic, func(furl string) {
+					err = service.DownloadImagesByExcel(fpath, sheetInput.Text, imgtitleInput.Text, refererUrl, strings.TrimSpace(dname), newXlsxWithPic, func(furl string) {
 						fprogress.SetValue(fprogress.Value + 1)
 					})
+					if err != nil {
+						CheckError(fmt.Errorf("下载错误(%v)", err), w)
+					}
 					isRunning = false
 				}()
 

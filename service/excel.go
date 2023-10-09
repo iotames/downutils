@@ -104,7 +104,7 @@ func (e *ExcelService) DownloadImagesByColly(sheetName, imgTitle, referer, dirna
 
 	for _, sn := range snames {
 		imgColI, _, _ := e.GetColsByTitle(sn, imgTitle)
-		e.ReadRows(sn, func(rowData map[rune]string, rowI int) ReadRowResult {
+		err = e.ReadRows(sn, func(rowData map[rune]string, rowI int) ReadRowResult {
 			imgUrl := rowData[imgColI]
 			if imgUrl == "" {
 				log.Printf("\n---ReadRows--Skip--DownloadImagesByColly Request: DownloadUrl is empty---Coli(%d)----rowData(%+v)-------\n", imgColI, rowData)
@@ -124,8 +124,14 @@ func (e *ExcelService) DownloadImagesByColly(sheetName, imgTitle, referer, dirna
 			c.Request("GET", imgUrl, nil, ctx, nil)
 			return ReadRowResult{Success: true}
 		})
+		if err != nil {
+			break
+		}
 	}
 	c.Wait()
+	if err != nil {
+		return err
+	}
 	var result error
 	if withImgFile {
 		for _, sn := range snames {
@@ -168,12 +174,13 @@ func (e *ExcelService) ReadRows(sheetKey interface{}, callback func(rowData map[
 	default:
 		panic("sheetKey must be string | int")
 	}
-	fmt.Println("sheetName:", sheetName)
+	fmt.Printf("-----ReadRows--sheetName(%s)\n", sheetName)
 	if !ok {
 		panic("index range out of SheetMap")
 	}
 	rows, err := f.Rows(sheetName)
 	if err != nil {
+		fmt.Printf("-----f.Rows--sheetName(%s)--err(%v)\n", sheetName, err)
 		return err
 	}
 	rowI := 1
@@ -349,22 +356,24 @@ func (e *ExcelService) Save() error {
 
 // TODO Wait download before save excel
 // --downloadimages=\"runtime/hello.xlsx,Sheet1,图片,https://www.amazon.com,amazon\"
-func DownloadImagesByExcel(filepath, sheetName, imgTitle, referer, dirname string, withImgFile bool, onResp func(furl string)) {
+func DownloadImagesByExcel(filepath, sheetName, imgTitle, referer, dirname string, withImgFile bool, onResp func(furl string)) error {
 	// 下载图片并另存xlsx文件
 	f, err := excelize.OpenFile(filepath)
 	if err != nil {
 		fmt.Println("error: ", err)
-		return
+		return err
 	}
 	updateExcel := NewExcelService(f)
 	err = updateExcel.DownloadImagesByColly(sheetName, imgTitle, referer, dirname, onResp, withImgFile)
 	// err = updateExcel.DownloadImages(sheetName, imgTitle, referer, dirname)
 	if err != nil {
-		fmt.Println("-----DownloadImages------ERROR:", err)
+		fmt.Printf("-----DownloadImagesByExcel--err(%v)\n", err)
+		return err
 	}
 	if withImgFile {
-		updateExcel.SaveAs(strings.Replace(filepath, ".xls", "_image.xls", 1))
+		return updateExcel.SaveAs(strings.Replace(filepath, ".xls", "_image.xls", 1))
 	}
+	return nil
 }
 
 func GetImgsByExcel(filepath, sheetName, imgTtile string) (imgs []string, err error) {
