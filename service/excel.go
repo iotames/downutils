@@ -101,9 +101,12 @@ func (e *ExcelService) DownloadImagesByColly(sheetName, imgTitle, referer, dirna
 	if sheetName == "" {
 		snames = e.ExcelFile.GetSheetList()
 	}
-
+	reqcount := 0
 	for _, sn := range snames {
-		imgColI, _, _ := e.GetColsByTitle(sn, imgTitle)
+		imgColI, _, err := e.GetColsByTitle(sn, imgTitle)
+		if err != nil {
+			break
+		}
 		err = e.ReadRows(sn, func(rowData map[rune]string, rowI int) ReadRowResult {
 			imgUrl := rowData[imgColI]
 			if imgUrl == "" {
@@ -121,9 +124,11 @@ func (e *ExcelService) DownloadImagesByColly(sheetName, imgTitle, referer, dirna
 			log.Printf("---Before Request:LocalPath(%s)\n", filepath)
 			ctx := colly.NewContext()
 			ctx.Put("LocalPath", filepath)
+			reqcount++
 			c.Request("GET", imgUrl, nil, ctx, nil)
 			return ReadRowResult{Success: true}
 		})
+
 		if err != nil {
 			break
 		}
@@ -222,6 +227,7 @@ func (e ExcelService) GetColsByTitle(sheetName, imgTitle string) (colIndex rune,
 		return
 	}
 	colIndex = 'A'
+	isok := false
 	for cols.Next() {
 		var col []string
 		col, err = cols.Rows()
@@ -235,8 +241,12 @@ func (e ExcelService) GetColsByTitle(sheetName, imgTitle string) (colIndex rune,
 			continue
 		} else {
 			dt = col
+			isok = true
 			break
 		}
+	}
+	if !isok {
+		err = fmt.Errorf("找不到标题列:%s", imgTitle)
 	}
 	return
 }
@@ -297,9 +307,8 @@ func (e *ExcelService) setLocalImages(sheetName, imgTitle, baseUrl, dirname stri
 		}
 	}
 	if !imgTitleExist {
-		// return errors.New("imgTitle is not Exist")
 		log.Println("imgTitle is not Exist")
-		return nil
+		return fmt.Errorf("excel文件里找不到标题名为%s的列，无法下载图片", imgTitle)
 	}
 
 	// AddPicture 不指定图片栏列宽度，图片无法填满整个单元格
@@ -322,27 +331,27 @@ func (e *ExcelService) setLocalImages(sheetName, imgTitle, baseUrl, dirname stri
 }
 
 // TODO Wait download before save excel
-func (e *ExcelService) DownloadImages(sheetName, imgTitle, baseUrl, dirname string) error {
-	spiderService := &SiteSpider{BaseUrl: baseUrl}
-	var err error
-	snames := []string{}
-	if sheetName == "" {
-		snames = e.ExcelFile.GetSheetList()
-	} else {
-		snames = append(snames, sheetName)
-	}
-	for _, sn := range snames {
-		err = e.setLocalImages(sn, imgTitle, baseUrl, dirname, func(excelImg ExcelImage) ExcelImage {
-			excelImg.LocalPath = spiderService.GetLocalFile(excelImg.Url, dirname, LOCAL_IMAGE_FILE_EXT)
-			spiderService.DownloadFile(excelImg.Url, excelImg.LocalPath, "")
-			return excelImg
-		})
-		if err != nil {
-			break
-		}
-	}
-	return err
-}
+// func (e *ExcelService) DownloadImages(sheetName, imgTitle, baseUrl, dirname string) error {
+// 	spiderService := &SiteSpider{BaseUrl: baseUrl}
+// 	var err error
+// 	snames := []string{}
+// 	if sheetName == "" {
+// 		snames = e.ExcelFile.GetSheetList()
+// 	} else {
+// 		snames = append(snames, sheetName)
+// 	}
+// 	for _, sn := range snames {
+// 		err = e.setLocalImages(sn, imgTitle, baseUrl, dirname, func(excelImg ExcelImage) ExcelImage {
+// 			excelImg.LocalPath = spiderService.GetLocalFile(excelImg.Url, dirname, LOCAL_IMAGE_FILE_EXT)
+// 			spiderService.DownloadFile(excelImg.Url, excelImg.LocalPath, "")
+// 			return excelImg
+// 		})
+// 		if err != nil {
+// 			break
+// 		}
+// 	}
+// 	return err
+// }
 
 func (e *ExcelService) SaveAs(filepath string) error {
 	defer e.ExcelFile.Close()
@@ -391,7 +400,11 @@ func GetImgsByExcel(filepath, sheetName, imgTtile string) (imgs []string, err er
 		snames = ec.ExcelFile.GetSheetList()
 	}
 	for _, sn := range snames {
-		_, cols, _ := ec.GetColsByTitle(sn, imgTtile)
+		_, cols, errc := ec.GetColsByTitle(sn, imgTtile)
+		if errc != nil {
+			err = errc
+			break
+		}
 		for i, col := range cols {
 			if i == 0 {
 				continue

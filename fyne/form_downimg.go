@@ -87,7 +87,11 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 				dname := imgdirnameInput.Text
 				imgs, err := service.GetImgsByExcel(fpath, sheetInput.Text, imgtitleInput.Text)
 				if err != nil {
-					fmt.Printf("--err(%v) service.GetImgsByExcel--\n", err)
+					err = fmt.Errorf("service.GetImgsByExcel错误:%v", err)
+					fmt.Printf("%v", err)
+					CheckError(err, w)
+					isRunning = false
+					return
 				}
 				fprogress.Max = float64(len(imgs))
 				fprogress.SetValue(0)
@@ -97,10 +101,11 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 					})
 					if err != nil {
 						CheckError(fmt.Errorf("下载错误(%v)", err), w)
+						return
 					}
 					isRunning = false
+					dialog.NewInformation("提示", "下载完成", w).Show()
 				}()
-
 				// go func(ctx context.Context) {
 				// 	defer fmt.Println("---Out--Of---Loop---")
 				// 	for {
