@@ -218,6 +218,7 @@ func GetLocalImageFileName(url string) string {
 
 // GetLocalFile. fileExt, Like: .jpg .png. .zip
 func (s *SiteSpider) GetLocalFile(fileUrl, dirname, fileExt string) string {
+	fileUrl = strings.TrimSpace(fileUrl)
 	filename := miniutils.Md5(fileUrl) + fileExt
 	imageExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}
 	basePath := s.sconf.DownloadsPath

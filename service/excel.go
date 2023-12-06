@@ -110,14 +110,14 @@ func (e *ExcelService) DownloadImagesByColly(sheetName, imgTitle, referer, dirna
 		err = e.ReadRows(sn, func(rowData map[rune]string, rowI int) ReadRowResult {
 			imgUrl := rowData[imgColI]
 			if imgUrl == "" {
-				log.Printf("\n---ReadRows--Skip--DownloadImagesByColly Request: DownloadUrl is empty---Coli(%d)----rowData(%+v)-------\n", imgColI, rowData)
+				log.Printf("-------Skip--DownloadImagesByColly--ReadRows--empty--imgUrl--sheetName(%s)--Coli(%d)----rowData(%+v)-------\n", sn, imgColI, rowData)
 				return ReadRowResult{SkipAndContinue: true}
 			}
 			filepath := spd.GetLocalFile(imgUrl, dirname, LOCAL_IMAGE_FILE_EXT)
 			isExist := miniutils.IsPathExists(filepath)
 			if isExist {
 				onResp(imgUrl)
-				log.Printf("---ReadRows---Skip--DownloadImagesByColly--Request(%s)--filepath(%s)--is exist---", imgUrl, filepath)
+				log.Printf("-----Skip--DownloadImagesByColly--ReadRows--sheetName(%s)--imgUrl(%s)--filepath(%s)--is exist---", sn, imgUrl, filepath)
 				return ReadRowResult{SkipAndContinue: true}
 			}
 			log.Printf("---colly.Collector.Request(%s)\n", imgUrl)
@@ -141,9 +141,11 @@ func (e *ExcelService) DownloadImagesByColly(sheetName, imgTitle, referer, dirna
 	if withImgFile {
 		for _, sn := range snames {
 			res := e.setLocalImages(sn, imgTitle, baseUrl, dirname, func(excelImg ExcelImage) ExcelImage {
-				filepath := spd.GetLocalFile(excelImg.Url, dirname, LOCAL_IMAGE_FILE_EXT)
+				imgurl := excelImg.Url
+				filepath := spd.GetLocalFile(imgurl, dirname, LOCAL_IMAGE_FILE_EXT)
 				excelImg.LocalPath = filepath
-				if excelImg.Url == "" {
+				// log.Printf("---ReadRow--DownloadImagesByColly-debug-sheetName(%s)--imgurl(%s)--filepath(%s)----", sn, imgurl, filepath)
+				if imgurl == "" {
 					log.Println("Skip: DownloadImagesByColly Request: DownloadUrl is empty----------------")
 					return excelImg
 				}
@@ -296,9 +298,10 @@ func (e *ExcelService) setLocalImages(sheetName, imgTitle, baseUrl, dirname stri
 				rowI++
 				continue
 			}
-			fmt.Printf("\n----row: %d--url: %s----\n", rowI, cell)
+			fileurl := strings.TrimSpace(cell)
+			fmt.Printf("\n----setLocalImages--row(%d)--fileurl(%s)----\n", rowI, fileurl)
 			axis := fmt.Sprintf("%c%d", colI, rowI)
-			excelImg := ExcelImage{Axis: axis, Url: cell}
+			excelImg := ExcelImage{Axis: axis, Url: fileurl}
 			excelImg = callback(excelImg)
 			excelImages = append(excelImages, excelImg)
 
