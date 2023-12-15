@@ -97,12 +97,17 @@ func (e *ExcelService) DownloadImagesByColly(sheetName, imgTitle, referer, dirna
 		onResp(r.Request.URL.String())
 	})
 
-	snames := []string{sheetName}
-	if sheetName == "" {
-		snames = e.ExcelFile.GetSheetList()
-	}
+	// snames := []string{sheetName}
+	// if sheetName == "" {
+	// 	snames = e.ExcelFile.GetSheetList()
+	// }
+
+	snames := e.ExcelFile.GetSheetList()
 	reqcount := 0
 	for _, sn := range snames {
+		if sheetName != "" && strings.TrimSpace(sn) != strings.TrimSpace(sheetName) {
+			continue
+		}
 		imgColI, _, err := e.GetColsByTitle(sn, imgTitle)
 		if err != nil {
 			break
@@ -140,6 +145,9 @@ func (e *ExcelService) DownloadImagesByColly(sheetName, imgTitle, referer, dirna
 	var result error
 	if withImgFile {
 		for _, sn := range snames {
+			if sheetName != "" && strings.TrimSpace(sn) != strings.TrimSpace(sheetName) {
+				continue
+			}
 			res := e.setLocalImages(sn, imgTitle, baseUrl, dirname, func(excelImg ExcelImage) ExcelImage {
 				imgurl := excelImg.Url
 				filepath := spd.GetLocalFile(imgurl, dirname, LOCAL_IMAGE_FILE_EXT)
@@ -398,11 +406,15 @@ func GetImgsByExcel(filepath, sheetName, imgTtile string) (imgs []string, err er
 	defer f.Close()
 	ec := NewExcelService(f)
 
-	snames := []string{sheetName}
-	if sheetName == "" {
-		snames = ec.ExcelFile.GetSheetList()
-	}
+	// snames := []string{sheetName}
+	// if sheetName == "" {
+	// 	snames = ec.ExcelFile.GetSheetList()
+	// }
+	snames := ec.ExcelFile.GetSheetList()
 	for _, sn := range snames {
+		if sheetName != "" && strings.TrimSpace(sn) != strings.TrimSpace(sheetName) {
+			continue
+		}
 		_, cols, errc := ec.GetColsByTitle(sn, imgTtile)
 		if errc != nil {
 			err = errc
