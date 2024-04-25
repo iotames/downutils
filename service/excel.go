@@ -283,6 +283,7 @@ func (e *ExcelService) setLocalImages(sheetName, imgTitle, baseUrl, dirname stri
 	miniutils.Mkdir(sconf.ImagesPath + "/" + dirname)
 	colHeiht := conf.ImageHeight
 	colWidth := conf.ColWidth
+	imgwebpage := conf.ImageWebpage
 
 	// 遍历数据列
 	imgTitleExist := false
@@ -331,9 +332,13 @@ func (e *ExcelService) setLocalImages(sheetName, imgTitle, baseUrl, dirname stri
 
 	for _, excelImg := range excelImages {
 		f.SetCellValue(sheetName, excelImg.Axis, "")
+		imgopts := &excelize.GraphicOptions{AutoFit: true, LockAspectRatio: true, HyperlinkType: "External"}
+		if imgwebpage {
+			imgopts.Hyperlink = excelImg.Url
+		}
 		err := f.AddPicture(sheetName, excelImg.Axis, excelImg.LocalPath,
 			// `{"x_scale": 0.2, "y_scale": 0.2}`,
-			&excelize.GraphicOptions{AutoFit: true, LockAspectRatio: true, HyperlinkType: "External", Hyperlink: excelImg.Url},
+			imgopts,
 		)
 		// fmt.Println(excelImg)
 		if err != nil {

@@ -3,6 +3,7 @@ package conf
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"strconv"
 
@@ -14,6 +15,7 @@ var timeout, retry, delay, randomDelay, parallelism int
 var dbDriver, dbName, dbUsername, dbPassword, dbHost string
 var dbPort, dbNodeId int
 var ImageHeight, ColWidth int
+var ImageWebpage bool
 
 func getConfByEnv() {
 	FyneTitle = getEnvDefaultStr("FYNE_TITLE", DEFAULT_FYNE_TITLE)
@@ -30,6 +32,7 @@ func getConfByEnv() {
 	parallelism = getEnvDefaultInt("PARALLELISM", DEFAULT_PARALLELISM)
 	ImageHeight = getEnvDefaultInt("IMAGE_HEIGHT", DEFAULT_IMAGE_HEIGHT)
 	ColWidth = getEnvDefaultInt("COL_WIDTH", DEFAULT_COL_WIDTH)
+	ImageWebpage = getEnvDefaultBool("IMAGE_WEBPAGE", DEFAULT_IMAGE_WEBPAGE)
 
 	dbDriver = getEnvDefaultStr("DB_DRIVER", DEFAULT_DB_DRIVER)
 	dbName = getEnvDefaultStr("DB_NAME", DEFAULT_DB_NAME)
@@ -77,4 +80,16 @@ func getEnvDefaultInt(key string, defval int) int {
 	}
 	vv, _ := strconv.Atoi(v)
 	return vv
+}
+
+func getEnvDefaultBool(key string, defval bool) bool {
+	v, ok := os.LookupEnv(key)
+	if !ok {
+		return defval
+	}
+	val := false
+	if strings.EqualFold(v, "true") {
+		val = true
+	}
+	return val
 }
