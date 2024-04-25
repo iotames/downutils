@@ -23,7 +23,6 @@ func setEnvFile() {
 func initEnvFile() []string {
 	var err error
 	var files []string
-	var createNewEnvfile bool
 	if !miniutils.IsPathExists(WorkEnvFile) {
 		err = createEnvFile(WorkEnvFile)
 		if err != nil {
@@ -31,23 +30,17 @@ func initEnvFile() []string {
 		}
 		files = append(files, WorkEnvFile)
 		fmt.Printf("Create file %s SUCCESS\n", WorkEnvFile)
-		createNewEnvfile = true
 	}
 	files = append(files, WorkEnvFile)
-
-	if miniutils.IsPathExists(DEFAULT_ENV_FILE) {
-		files = append(files, DEFAULT_ENV_FILE)
-	} else {
-		if createNewEnvfile {
-			err = createEnvFile(DEFAULT_ENV_FILE)
-			if err != nil {
-				fmt.Printf("--------initEnvFile(%s)err(%v)\n", DEFAULT_ENV_FILE, err)
-				return files
-			}
-			files = append(files, DEFAULT_ENV_FILE)
-			fmt.Printf("Create file %s SUCCESS\n", DEFAULT_ENV_FILE)
+	if !miniutils.IsPathExists(DEFAULT_ENV_FILE) {
+		err = createEnvFile(DEFAULT_ENV_FILE)
+		if err != nil {
+			fmt.Printf("--------initEnvFile(%s)err(%v)\n", DEFAULT_ENV_FILE, err)
+			return files
 		}
+		fmt.Printf("Create file %s SUCCESS\n", DEFAULT_ENV_FILE)
 	}
+	files = append(files, DEFAULT_ENV_FILE)
 	return files
 }
 

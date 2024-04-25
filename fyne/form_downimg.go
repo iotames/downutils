@@ -41,7 +41,7 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 	imgdirItem.HintText = "文件夹名。留空则从Referer值生成。"
 
 	refererInput := widget.NewEntry()
-	refererInput.Text = ""
+	refererInput.Text = "https://image.baidu.com/"
 	refererInput.PlaceHolder = "填网站主页。例: https://www.amazon.com/"
 	excelWithPicInput := widget.NewCheck("启用", nil) // NewFyRadio(map[bool]string{false: "否", true: "是"}, false, nil)
 	withPicItem := widget.NewFormItem("另存为含图片的xlsx文件", excelWithPicInput)
@@ -67,8 +67,7 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 		}
 		refererUrl := refererInput.Text
 		if refererUrl == "" {
-			CheckError(fmt.Errorf("Referer不能为空"), w)
-			return
+			refererUrl = "https://image.baidu.com/"
 		}
 		if strings.Index(refererUrl, "http") != 0 {
 			CheckError(fmt.Errorf("Referer必须以http开头"), w)

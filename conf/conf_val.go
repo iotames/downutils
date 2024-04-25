@@ -13,6 +13,7 @@ var userAgent, imgsPath, cookie, httpProxy, runtimeDir, downloadsPath, FyneFont,
 var timeout, retry, delay, randomDelay, parallelism int
 var dbDriver, dbName, dbUsername, dbPassword, dbHost string
 var dbPort, dbNodeId int
+var ImageHeight, ColWidth int
 
 func getConfByEnv() {
 	FyneTitle = getEnvDefaultStr("FYNE_TITLE", DEFAULT_FYNE_TITLE)
@@ -27,6 +28,8 @@ func getConfByEnv() {
 	delay = getEnvDefaultInt("DELAY", DEFAULT_DELAY)
 	randomDelay = getEnvDefaultInt("RANDOM_DELAY", DEFAULT_RANDOM_DELAY)
 	parallelism = getEnvDefaultInt("PARALLELISM", DEFAULT_PARALLELISM)
+	ImageHeight = getEnvDefaultInt("IMAGE_HEIGHT", DEFAULT_IMAGE_HEIGHT)
+	ColWidth = getEnvDefaultInt("COL_WIDTH", DEFAULT_COL_WIDTH)
 
 	dbDriver = getEnvDefaultStr("DB_DRIVER", DEFAULT_DB_DRIVER)
 	dbName = getEnvDefaultStr("DB_NAME", DEFAULT_DB_NAME)

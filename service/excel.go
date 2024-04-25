@@ -281,6 +281,8 @@ func (e *ExcelService) setLocalImages(sheetName, imgTitle, baseUrl, dirname stri
 	}
 	sconf := conf.GetSpiderConf()
 	miniutils.Mkdir(sconf.ImagesPath + "/" + dirname)
+	colHeiht := conf.ImageHeight
+	colWidth := conf.ColWidth
 
 	// 遍历数据列
 	imgTitleExist := false
@@ -300,8 +302,10 @@ func (e *ExcelService) setLocalImages(sheetName, imgTitle, baseUrl, dirname stri
 		imgTitleExist = true
 
 		rowI := 1
+		f.SetColWidth(sheetName, fmt.Sprintf("%c", colI), fmt.Sprintf("%c", colI), float64(colWidth))
 		for i, cell := range col {
-			f.SetRowHeight(sheetName, rowI, 76)
+			f.SetRowHeight(sheetName, rowI, float64(colHeiht))
+
 			if i == 0 {
 				rowI++
 				continue
@@ -384,6 +388,9 @@ func DownloadImagesByExcel(filepath, sheetName, imgTitle, referer, dirname strin
 		return err
 	}
 	updateExcel := NewExcelService(f)
+	if referer == "" {
+		referer = "https://image.baidu.com/"
+	}
 	err = updateExcel.DownloadImagesByColly(sheetName, imgTitle, referer, dirname, onResp, withImgFile)
 	// err = updateExcel.DownloadImages(sheetName, imgTitle, referer, dirname)
 	if err != nil {
