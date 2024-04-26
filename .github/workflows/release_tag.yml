@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      - name: Create Release
+      - name: Create PreRelease
         id: create_release
         uses: actions/create-release@v1
         if: github.event_name == 'push'
@@ -31,11 +31,12 @@ jobs:
           prerelease: true
 
   build:
+    name: Build App
     # if: github.event_name == 'release'
     # needs: create_release
     strategy:
       matrix:
-        goos: [linux, darwin, windows]
+        goos: [windows, linux, darwin]
 
     permissions: # 需要设置写权限才能自动发布
       contents: write
@@ -56,6 +57,7 @@ jobs:
       - name: Install dependencies
         run: |
           go env -w GO111MODULE=on
+          go env -w GOPROXY=https://goproxy.cn,direct
           sudo apt-get update -y
           sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev
           go mod tidy
@@ -68,10 +70,12 @@ jobs:
           echo "GOOS: $GOOS, GOARCH: $GOARCH, RELEASE_NAME: $_NAME"
           echo "ASSET_NAME=$_NAME" >> $GITHUB_OUTPUT
           echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
-        
+
       - name: Build
         run: |
-          fyne package -os ${{ matrix.goos }} -icon resource/images/logo.png
+          GOPATH=$(go env GOPATH)
+          ls $GOPATH/bin
+          $(GOPATH)/bin/fyne package -os ${{ matrix.goos }} -icon resource/images/logo.png
           ls *.exe *.tar*
           
       - name: Package
