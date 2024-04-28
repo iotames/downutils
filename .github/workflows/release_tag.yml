@@ -80,6 +80,8 @@ jobs:
       - name: Build for macOS
         if: runner.os == 'macOS'
         run: |
+          go env -w GO111MODULE=on
+          go mod tidy
           go install fyne.io/fyne/v2/cmd/fyne@latest
           fyne package --icon resource/images/logo.png --release
           zip -r downutils-macOS-x86_64.zip downutils.app
