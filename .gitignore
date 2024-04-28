@@ -7,3 +7,4 @@ go.sum
 *.tar.gz
 *.tar.xz
 runtime/
+fyne-cross/
