@@ -7,6 +7,7 @@ require (
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/iotames/miniutils v1.0.10
 	github.com/joho/godotenv v1.5.1
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/sqweek/dialog v0.0.0-20220809060634-e981b270ebbf
 	github.com/xuri/excelize/v2 v2.8.0
 	golang.org/x/image v0.12.0
