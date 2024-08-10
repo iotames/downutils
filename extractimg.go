@@ -1,11 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"strings"
-
-	"flag"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -17,34 +16,42 @@ var imgcol string
 var imgnamecol string
 
 func Extractimg() {
-	flag.StringVar(&filename, "filename", "test.xlsx", "输入Excel文件名")
-	flag.StringVar(&dirname, "dirname", "images", "输入下载目录名")
-	flag.StringVar(&sheetname, "sheetname", "大货基础信息表", "sheet名称")
-	flag.StringVar(&imgcol, "imgcol", "J", "图片所在列")
-	flag.StringVar(&imgnamecol, "imgnamecol", "K", "图片名称所在列")
-
+	flag.StringVar(&filename, "filename", "runtime/111.xlsx", "输入Excel文件名")
+	flag.StringVar(&dirname, "dirname", "runtime/images", "输入下载目录名")
+	flag.StringVar(&sheetname, "sheetname", "Sheet1", "sheet名称")
+	flag.StringVar(&imgcol, "imgcol", "A", "图片所在列")
+	flag.StringVar(&imgnamecol, "imgnamecol", "B", "图片名称所在列")
 	flag.Parse()
+
+	// dirname = "runtime/images"
+	// sheetname = "Sheet1"
+	// imgcol = "A"     // 图片所在列
+	// imgnamecol = "B" // 图片名称所在列
+	// filename = "runtime/111.xlsx"
+
 	f, err := excelize.OpenFile(filename)
 	if err != nil {
 		fmt.Println(err)
-		return
+		panic(err)
 	}
-	// dirname := "imgs"
-	// sheetname := "大货基础信息表"
-	// imgcol := "J"     // 图片所在列
-	// imgnamecol := "K" // 图片名称所在列
 	total := 0
 	okk := 0
-	for i := 2; i < 1845; i++ {
+	for i := 2; i < 404; i++ {
 		total++
 		picin := fmt.Sprintf("%s%d", imgcol, i)
 		pics, err := f.GetPictures(sheetname, picin)
 		if err != nil {
-			fmt.Printf("-----GetPictures--err(%v)-----\n", err)
+			fmt.Printf("-----error:GetPictures--picin(%s)--err(%v)---\n", picin, err)
+			// panic(err)
 		}
 		picname, err := f.GetCellValue(sheetname, fmt.Sprintf("%s%d", imgnamecol, i))
 		if err != nil {
 			fmt.Printf("-----GetCellValue--err(%v)-----\n", err)
+		}
+		if len(pics) == 0 {
+			err = fmt.Errorf("------picin(%s)--pics-len=0--picname(%s)---", picin, picname)
+			fmt.Println(err)
+			// panic(err)
 		}
 		result := savePics(dirname, picname, pics)
 		if result > 0 {
@@ -66,8 +73,9 @@ func savePics(dirname string, picname string, pics []excelize.Picture) int {
 	for _, pic := range pics {
 		picname := fmt.Sprintf("%s%s", picname, pic.Extension)
 		filepath := dirname + "/" + picname
+		// fmt.Printf("----savePics---(%s)--------\n", filepath)
 		if err := os.WriteFile(filepath, pic.File, 0644); err != nil {
-			fmt.Println(picname, err)
+			fmt.Printf("------pic-write-err(%v)--writeFile(%s)------\n", err, filepath)
 		}
 		ok++
 	}
