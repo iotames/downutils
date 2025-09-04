@@ -4,6 +4,7 @@ import (
 	// "context"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/iotames/downutils/service"
@@ -28,11 +29,11 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 	sheetItem := widget.NewFormItem("Sheet名(可选)", sheetInput)
 	sheetItem.HintText = "Excel的sheet子表。留空则读取所有子表"
 
-	imgtitleInput := widget.NewEntry()
-	imgtitleInput.Text = "图片"
-	imgtitleInput.PlaceHolder = "例: 缩略图"
-	downtitleItem := widget.NewFormItem("文件链接列标题名", imgtitleInput)
-	downtitleItem.HintText = "填要下载的列的【标题名】，标题栏必须在首行。"
+	imgLocationInput := widget.NewEntry()
+	imgLocationInput.Text = "1,2"
+	imgLocationInput.PlaceHolder = "例: 1,2表示从第1列第2行开始查找整列的数据"
+	downLocationItem := widget.NewFormItem("行列位置", imgLocationInput)
+	downLocationItem.HintText = "表示从第几列第几行开始下载整列的数据"
 
 	imgdirnameInput := widget.NewEntry()
 	imgdirnameInput.Text = ""
@@ -49,7 +50,7 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 	mainForm := NewFyForm(
 		widget.NewFormItem("xlsx文件路径", filepathInput),
 		sheetItem,
-		downtitleItem,
+		downLocationItem,
 		imgdirItem,
 		widget.NewFormItem("Referer", refererInput),
 		withPicItem,
@@ -76,26 +77,51 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 
 		dialog.NewConfirm("确认", "爬虫确认执行", func(b bool) {
 			if b {
+				var err error
+				var colIndex, rowIndex int
 				if isRunning {
 					CheckError(fmt.Errorf("下载进行中，请勿频繁点击"), w)
 					return
 				}
 				isRunning = true
 				newXlsxWithPic := excelWithPicInput.Checked
-				log.Printf("--filepath(%s)--sheetName(%s)--imgTitle(%s)--fileWithPic(%v)--\n", fpath, sheetInput.Text, imgtitleInput.Text, newXlsxWithPic)
-				dname := imgdirnameInput.Text
-				imgs, err := service.GetImgsByExcel(fpath, sheetInput.Text, imgtitleInput.Text)
+				imgLocationSplit := strings.Split(imgLocationInput.Text, ",")
+				if len(imgLocationSplit) != 2 {
+					imgLocationSplit = strings.Split(imgLocationInput.Text, "，")
+					if len(imgLocationSplit) != 2 {
+						fmt.Printf("---------22222222--NotIndex(2)---len(%d)---(%+v)----", len(imgLocationSplit), imgLocationSplit)
+						CheckError(fmt.Errorf("行列位置必须为1,1格式。"), w)
+						isRunning = false
+						return
+					}
+
+				}
+				colIndex, err = strconv.Atoi(imgLocationSplit[0])
 				if err != nil {
-					err = fmt.Errorf("service.GetImgsByExcel错误:%v", err)
-					fmt.Printf("%v", err)
-					CheckError(err, w)
+					CheckError(fmt.Errorf("行列位置解析错误(%v)", err), w)
+					return
+				}
+				rowIndex, err = strconv.Atoi(imgLocationSplit[1])
+				if err != nil {
+					CheckError(fmt.Errorf("行列位置解析错误(%v)", err), w)
+					return
+				}
+				log.Printf("------dialog.NewConfirm----filepath(%s)--sheetName(%s)--imgLocationInput(%s)--location(%d,%d)-------fileWithPic(%v)--\n", fpath, sheetInput.Text, imgLocationInput.Text, colIndex, rowIndex, newXlsxWithPic)
+				dname := imgdirnameInput.Text
+				// imgs, err := service.GetImgsByExcel(fpath, sheetInput.Text, imgtitleInput.Text)
+				imgs, err := service.GetImgsByExcelIndex(fpath, sheetInput.Text, colIndex, rowIndex)
+				if err != nil {
+					CheckError(fmt.Errorf("service.GetImgsByExcel错误:%v", err), w)
 					isRunning = false
 					return
+				}
+				for i, imgdt := range imgs {
+					fmt.Printf("------imgs--(%d)--img(%s)---\n", i, imgdt)
 				}
 				fprogress.Max = float64(len(imgs))
 				fprogress.SetValue(0)
 				go func() {
-					err = service.DownloadImagesByExcel(fpath, sheetInput.Text, imgtitleInput.Text, refererUrl, strings.TrimSpace(dname), newXlsxWithPic, func(furl string) {
+					err = service.DownloadImagesByExcel(fpath, sheetInput.Text, refererUrl, strings.TrimSpace(dname), colIndex, rowIndex, newXlsxWithPic, func(furl string) {
 						fprogress.SetValue(fprogress.Value + 1)
 					})
 					if err != nil {
