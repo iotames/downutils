@@ -1,21 +1,15 @@
 package service
 
 import (
-	"bytes"
 	"fmt"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
-	"io"
-	"log"
-	"os"
+
 	"strings"
 
 	// "github.com/iotames/downutils/conf"
 
-	"github.com/iotames/miniutils"
-
-	"github.com/gocolly/colly/v2"
 	"github.com/xuri/excelize/v2"
 	_ "golang.org/x/image/webp"
 )
@@ -212,9 +206,7 @@ func DownloadImagesByExcel(filepath, sheetName, referer, dirname string, colInde
 	if referer == "" {
 		referer = "https://image.baidu.com/"
 	}
-	// err = updateExcel.DownloadImagesByColly(sheetName, referer, dirname, onResp, withImgFile)
 	err = updateExcel.DownloadImagesByCollyLocation(sheetName, referer, dirname, colIndex, rowIndex, onResp, withImgFile)
-	// err = updateExcel.DownloadImages(sheetName, imgTitle, referer, dirname)
 	if err != nil {
 		fmt.Printf("-----DownloadImagesByExcel--err(%v)\n", err)
 		return err
@@ -289,111 +281,4 @@ func GetImgsByExcelIndex(filepath, sheetName string, colIndex, rowIndex int) (im
 		}
 	}
 	return
-}
-
-func (e *ExcelService) DownloadImagesByCollyLocation(sheetName, referer, dirname string, colIndex, rowIndex int, onResp func(furl string), withImgFile bool) error {
-	var err error
-	if dirname == "" {
-		urlSplit := strings.Split(referer, "/")
-		if len(urlSplit) > 2 {
-			dmm := urlSplit[2]
-			dmmSplit := strings.Split(dmm, ".")
-			if len(dmmSplit) > 1 {
-				dirname = dmmSplit[len(dmmSplit)-2]
-			}
-		}
-	}
-	spd := NewSpider(dirname)
-	baseUrl := miniutils.GetBaseUrl(referer)
-	spd.BaseUrl = baseUrl
-	c := spd.GetCollector()
-	spd.SetAsyncAndLimit(c, ".")
-
-	c.OnRequest(func(r *colly.Request) {
-		r.Headers.Set("referer", baseUrl+"/")
-	})
-
-	c.OnResponse(func(r *colly.Response) {
-		LocalPath := r.Ctx.Get("LocalPath")
-		// LocalPath := r.Ctx.Get(r.Request.URL.String())
-		log.Println("Download To LocalPath:", LocalPath)
-		var f *os.File
-		f, err = os.Create(LocalPath)
-		if err != nil {
-			log.Printf("\n---Error Happened. os.Create:%v-------\n", err)
-		}
-		_, err = io.Copy(f, bytes.NewReader(r.Body))
-		if err != nil {
-			log.Printf("---Error Happened. io.Copy:%v-------\n", err)
-		}
-		onResp(r.Request.URL.String())
-	})
-
-	snames := e.ExcelFile.GetSheetList()
-	// reqcount := 0
-	for _, sn := range snames {
-		if sheetName != "" && strings.TrimSpace(sn) != strings.TrimSpace(sheetName) {
-			continue
-		}
-		var imgs []string
-		imgs, err = e.GetColsBegin(sn, colIndex, rowIndex)
-		for _, img := range imgs {
-			imgUrl := strings.TrimSpace(img)
-			if imgUrl == "" {
-				continue
-			}
-			filepath := spd.GetLocalFile(imgUrl, dirname, LOCAL_IMAGE_FILE_EXT)
-			isExist := miniutils.IsPathExists(filepath)
-			if isExist {
-				onResp(imgUrl)
-				log.Printf("-----Skip--DownloadImagesByCollyLocation----sheetName(%s)--imgUrl(%s)--filepath(%s)--is exist---", sn, imgUrl, filepath)
-				continue
-			}
-			if strings.Index(imgUrl, "http") != 0 {
-				log.Printf("-----Skip--DownloadImagesByCollyLocation--UrlNotHttp--sheetName(%s)--imgUrl(%s)---", sn, imgUrl)
-				continue
-			}
-			ctx := colly.NewContext()
-			ctx.Put("LocalPath", filepath)
-			c.Request("GET", imgUrl, nil, ctx, nil)
-		}
-
-		if err != nil {
-			break
-		}
-	}
-	fmt.Println("-------DownloadImagesByCollyLocation----c.Wait()----------")
-	c.Wait()
-	if err != nil {
-		return err
-	}
-	var result error
-	if withImgFile {
-		for _, sn := range snames {
-			if sheetName != "" && strings.TrimSpace(sn) != strings.TrimSpace(sheetName) {
-				continue
-			}
-			res := e.setLocalImagesByIndex(sn, colIndex, rowIndex, baseUrl, dirname, func(excelImg ExcelImage) ExcelImage {
-				imgurl := excelImg.Url
-				filepath := spd.GetLocalFile(imgurl, dirname, LOCAL_IMAGE_FILE_EXT)
-				excelImg.LocalPath = filepath
-				// log.Printf("---ReadRow--DownloadImagesByColly-debug-sheetName(%s)--imgurl(%s)--filepath(%s)----", sn, imgurl, filepath)
-				if imgurl == "" {
-					log.Println("Skip: DownloadImagesByColly Request: DownloadUrl is empty----------------")
-					return excelImg
-				}
-				isExist := miniutils.IsPathExists(filepath)
-				if isExist {
-					log.Println("Skip: DownloadImagesByColly Request: filepath is exist---", filepath)
-					return excelImg
-				}
-				return excelImg
-			})
-			if res != nil {
-				result = res
-			}
-		}
-	}
-	// c.Wait() Wait Fail
-	return result
 }

@@ -19,9 +19,12 @@ func GetWelcomeContent(a fyne.App, w fyne.Window) fyne.CanvasObject {
 	// })
 
 	downfiles := widget.NewButton("文件批量下载器", func() {
-		c := container.NewVBox(RenderFormDownImg(w))
-		SetMainContant(w, c)
-		// w.Resize(fyne.NewSize(880, 720))
+		subw := a.NewWindow("文件批量下载器")
+		c := container.NewVBox(RenderFormDownImg(subw))
+		subw.SetContent(c)
+		subw.Resize(fyne.NewSize(720, 500))
+		subw.Show()
+		// SetMainContant(w, c)
 	})
 	content := hbox(
 		// chromedpTest,

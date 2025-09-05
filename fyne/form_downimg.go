@@ -19,7 +19,9 @@ import (
 
 func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 	filepathInput := widget.NewEntry()
-	filepathInput.PlaceHolder = "读取Excel表格某一列，批量下载。填xlsx文件路径"
+	filepathInput.PlaceHolder = "点击上方[选择xlsx文件]按钮，获取文件路径"
+	fileTxtItem := widget.NewFormItem("xlsx文件路径", filepathInput)
+	fileTxtItem.HintText = "读取Excel表格某一列，批量下载。"
 
 	// fpicker := hbox(filepathInput) //  container.NewHBox() widget.NewLabel("选择xlsx文件"),
 
@@ -37,7 +39,7 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 
 	imgdirnameInput := widget.NewEntry()
 	imgdirnameInput.Text = ""
-	imgdirnameInput.PlaceHolder = "例: amazon"
+	imgdirnameInput.PlaceHolder = "例: baidu"
 	imgdirItem := widget.NewFormItem("下载目录(可选)", imgdirnameInput)
 	imgdirItem.HintText = "文件夹名。留空则从Referer值生成。"
 
@@ -48,11 +50,11 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 	withPicItem := widget.NewFormItem("另存为含图片的xlsx文件", excelWithPicInput)
 	withPicItem.HintText = "不是下载图片，请勿开启此功能"
 	mainForm := NewFyForm(
-		widget.NewFormItem("xlsx文件路径", filepathInput),
-		sheetItem,
+		fileTxtItem,
 		downLocationItem,
-		imgdirItem,
+		sheetItem,
 		widget.NewFormItem("Referer", refererInput),
+		imgdirItem,
 		withPicItem,
 	)
 	fprogress := widget.NewProgressBar()
@@ -108,7 +110,6 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 				}
 				log.Printf("------dialog.NewConfirm----filepath(%s)--sheetName(%s)--imgLocationInput(%s)--location(%d,%d)-------fileWithPic(%v)--\n", fpath, sheetInput.Text, imgLocationInput.Text, colIndex, rowIndex, newXlsxWithPic)
 				dname := imgdirnameInput.Text
-				// imgs, err := service.GetImgsByExcel(fpath, sheetInput.Text, imgtitleInput.Text)
 				imgs, err := service.GetImgsByExcelIndex(fpath, sheetInput.Text, colIndex, rowIndex)
 				if err != nil {
 					CheckError(fmt.Errorf("service.GetImgsByExcel错误:%v", err), w)
@@ -131,33 +132,6 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 					isRunning = false
 					dialog.NewInformation("提示", "下载完成", w).Show()
 				}()
-				// go func(ctx context.Context) {
-				// 	defer fmt.Println("---Out--Of---Loop---")
-				// 	for {
-				// 		select {
-				// 		case <-ctx.Done():
-				// 			fmt.Println("子 协程 接受停止信号...")
-				// 			isRunning = false
-				// 			runtime.Goexit()
-				// 			return
-				// 		default:
-				// 			if !isRunning {
-				// 				go func() {
-				// 					isRunning = true
-				// 					mainForm.SubmitText = "下载中..."
-				// 					service.DownloadImagesByExcel(fpath, sheetInput.Text, imgtitleInput.Text, refererUrl, strings.TrimSpace(dname), newXlsxWithPic, func(furl string) {
-				// 						fprogress.SetValue(fprogress.Value + 1)
-				// 					})
-				// 					isRunning = false
-				// 					mainForm.SubmitText = "开始"
-				// 				}()
-				// 			}
-				// 		}
-				// 	}
-				// }(ctx)
-
-				// msg := dialog.NewInformation("提示", "已提交", w)
-				// msg.Show()
 			}
 		}, w).Show()
 	}
@@ -178,28 +152,13 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 	// }
 	// mainForm.CancelText = "取消"
 
-	filePicker := widget.NewButton("选择xlsx文件", func() {
+	filePicker := widget.NewButton("[选择xlsx文件]", func() {
 		filename, err := sqdialog.File().Filter("Excel表格(*.xlsx)", "xlsx").Load()
 		if err == nil {
 			filepathInput.SetText(filename)
 		} else {
 			CheckError(err, w)
 		}
-		// fd := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
-		// 	if err != nil {
-		// 		dialog.ShowError(err, w)
-		// 		return
-		// 	}
-		// 	if reader == nil {
-		// 		fmt.Println("Cancelled")
-		// 		return
-		// 	}
-		// 	defer reader.Close()
-		// 	filepathInput.SetText(reader.URI().Path())
-		// 	// TODO 自动填写referer, imgdirName
-		// }, w)
-		// fd.SetFilter(storage.NewExtensionFileFilter([]string{".xlsx"}))
-		// fd.Show()
 	})
 
 	return vbox(filePicker, mainForm, fprogress) // container.NewVBox(row1, form)
