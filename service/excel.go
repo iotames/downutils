@@ -138,6 +138,7 @@ func (e ExcelService) GetColsBegin(sheetName string, colIndex, rowIndex int) (dt
 			fmt.Printf("----遍历列(%d)失败(%v)------\n", colCount, err)
 			break
 		}
+		fmt.Printf("-------GetColsBegin------colCount%d == colIndex %d---------\n", colCount, colIndex)
 		if colCount == colIndex {
 			// 定位到开始的列
 			fmt.Printf("-------colCount(%d)---rowIndex(%d)---col(%+v)--\n", colIndex, rowIndex, col)
@@ -151,6 +152,7 @@ func (e ExcelService) GetColsBegin(sheetName string, colIndex, rowIndex int) (dt
 			fmt.Printf("----GetColsBegin--rowBegin(%d)--dt(%v)-----\n", rowBegin, dt)
 			break
 		}
+		colCount++
 	}
 	return
 }

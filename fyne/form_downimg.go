@@ -96,12 +96,12 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 					}
 
 				}
-				colIndex, err = strconv.Atoi(imgLocationSplit[0])
+				colIndex, err = strconv.Atoi(strings.TrimSpace(imgLocationSplit[0]))
 				if err != nil {
 					CheckError(fmt.Errorf("行列位置解析错误(%v)", err), w)
 					return
 				}
-				rowIndex, err = strconv.Atoi(imgLocationSplit[1])
+				rowIndex, err = strconv.Atoi(strings.TrimSpace(imgLocationSplit[1]))
 				if err != nil {
 					CheckError(fmt.Errorf("行列位置解析错误(%v)", err), w)
 					return

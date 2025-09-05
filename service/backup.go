@@ -140,9 +140,9 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 	}
 
 	colI := 'A'
-	countttt := 0
+	countttt := 1
 	for {
-		if countttt == (colIndex - 1) {
+		if countttt == colIndex {
 			break
 		}
 		colI++
@@ -167,7 +167,7 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 
 	// 遍历数据列
 	imgTitleExist := false
-	fmt.Println("------setLocalImagesByIndex----", string(colI), rowIndex)
+	fmt.Printf("------setLocalImagesByIndex---countttt(%d)--colI(%s)--colIndex(%d)--rowIndex(%d)---\n", countttt, string(colI), colIndex, rowIndex)
 	var colCount int = 1
 	for cols.Next() {
 		col, err := cols.Rows()
@@ -175,13 +175,13 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 			// 遍历列失败
 			return err
 		}
-
+		fmt.Printf("-------setLocalImagesByIndex---cols.Next----colCount(%d) == colIndex(%d)-----\n", colCount, colIndex)
 		if colCount == colIndex {
 			// 定位到开始的列
 			lencol := len(col)
 			if rowIndex > lencol {
 				err = fmt.Errorf("定位行数第(%d)行开始，已超过最大行数（%d）", rowIndex, lencol)
-				break
+				return err
 			}
 			// dt = col[rowIndex-1:]
 			imgTitleExist = true
@@ -195,9 +195,9 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 					rowI++
 					continue
 				}
-				fileurl := strings.TrimSpace(cell)
-				fmt.Printf("\n----setLocalImagesByIndex--row(%d)--fileurl(%s)----\n", rowI, fileurl)
 				axis := fmt.Sprintf("%c%d", colI, rowI)
+				fileurl := strings.TrimSpace(cell)
+				fmt.Printf("\n----setLocalImagesByIndex--axis(%s)--fileurl(%s)----\n", axis, fileurl)
 				excelImg := ExcelImage{Axis: axis, Url: fileurl}
 				excelImg = callback(excelImg)
 				excelImages = append(excelImages, excelImg)
@@ -208,6 +208,7 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 
 			break
 		}
+		colCount++
 
 	}
 	if !imgTitleExist {
