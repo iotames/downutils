@@ -228,11 +228,6 @@ func GetImgsByExcel(filepath, sheetName, imgTtile string) (imgs []string, err er
 	}
 	defer f.Close()
 	ec := NewExcelService(f)
-
-	// snames := []string{sheetName}
-	// if sheetName == "" {
-	// 	snames = ec.ExcelFile.GetSheetList()
-	// }
 	snames := ec.ExcelFile.GetSheetList()
 	for _, sn := range snames {
 		if sheetName != "" && strings.TrimSpace(sn) != strings.TrimSpace(sheetName) {
@@ -273,11 +268,12 @@ func GetImgsByExcelIndex(filepath, sheetName string, colIndex, rowIndex int) (im
 			break
 		}
 		for _, col := range cols {
-			if strings.Index(col, "http") != 0 {
-				fmt.Printf("----Skip----colData(%s)--NotBeginWith(http)-----\n", col)
+			imgUrl := strings.TrimSpace(col)
+			if strings.Index(imgUrl, "http") != 0 {
+				fmt.Printf("----Skip----colDataTrimSpace(%s)--NotBeginWithHttp-----\n", imgUrl)
 				continue
 			}
-			imgs = append(imgs, col)
+			imgs = append(imgs, imgUrl)
 		}
 	}
 	return

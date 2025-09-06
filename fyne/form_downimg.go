@@ -1,7 +1,6 @@
 package fyne
 
 import (
-	// "context"
 	"fmt"
 	"log"
 	"strconv"
@@ -57,13 +56,15 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 		imgdirItem,
 		withPicItem,
 	)
+	mainForm.SubmitText = "启动"
+
+	// ctx, cancel := context.WithCancel(context.Background())
 	fprogress := widget.NewProgressBar()
 	fprogress.TextFormatter = func() string { return fmt.Sprintf("下载进度: %.0f of %.0f", fprogress.Value, fprogress.Max) }
+
 	var isRunning bool = false
-	// ctx, cancel := context.WithCancel(context.Background())
-	mainForm.SubmitText = "开始"
 	mainForm.OnSubmit = func() {
-		fpath := filepathInput.Text
+		fpath := strings.TrimSpace(filepathInput.Text)
 		if fpath == "" {
 			CheckError(fmt.Errorf("xlsx文件路径不能为空"), w)
 			return
@@ -85,6 +86,7 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 					CheckError(fmt.Errorf("下载进行中，请勿频繁点击"), w)
 					return
 				}
+				mainForm.Disable()
 				isRunning = true
 				newXlsxWithPic := excelWithPicInput.Checked
 				imgLocationSplit := strings.Split(imgLocationInput.Text, ",")
@@ -94,6 +96,7 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 						fmt.Printf("---------22222222--NotIndex(2)---len(%d)---(%+v)----", len(imgLocationSplit), imgLocationSplit)
 						CheckError(fmt.Errorf("行列位置必须为1,1格式。"), w)
 						isRunning = false
+						mainForm.Enable()
 						return
 					}
 
@@ -101,56 +104,49 @@ func RenderFormDownImg(w fyne.Window) fyne.CanvasObject {
 				colIndex, err = strconv.Atoi(strings.TrimSpace(imgLocationSplit[0]))
 				if err != nil {
 					CheckError(fmt.Errorf("行列位置解析错误(%v)", err), w)
+					isRunning = false
+					mainForm.Enable()
 					return
 				}
 				rowIndex, err = strconv.Atoi(strings.TrimSpace(imgLocationSplit[1]))
 				if err != nil {
 					CheckError(fmt.Errorf("行列位置解析错误(%v)", err), w)
+					isRunning = false
+					mainForm.Enable()
 					return
 				}
+				dname := strings.TrimSpace(imgdirnameInput.Text)
 				log.Printf("------dialog.NewConfirm----filepath(%s)--sheetName(%s)--imgLocationInput(%s)--location(%d,%d)-------fileWithPic(%v)--\n", fpath, sheetInput.Text, imgLocationInput.Text, colIndex, rowIndex, newXlsxWithPic)
-				dname := imgdirnameInput.Text
-				imgs, err := service.GetImgsByExcelIndex(fpath, sheetInput.Text, colIndex, rowIndex)
+				downUtil := service.NewDownUtil(dname, fprogress)
+				downUtil.SetExcel(fpath, strings.TrimSpace(sheetInput.Text), colIndex, rowIndex)
+				downUtil.SetReferer(refererUrl)
+				if newXlsxWithPic {
+					downUtil.SetImgsInFile()
+				}
+				err = downUtil.Run()
+				isRunning = false
+				mainForm.Enable()
 				if err != nil {
-					CheckError(fmt.Errorf("service.GetImgsByExcel错误:%v", err), w)
-					isRunning = false
+					CheckError(err, w)
 					return
 				}
-				for i, imgdt := range imgs {
-					fmt.Printf("------imgs--(%d)--img(%s)---\n", i, imgdt)
-				}
-				fprogress.Max = float64(len(imgs))
-				fprogress.SetValue(0)
-				go func() {
-					err = service.DownloadImagesByExcel(fpath, sheetInput.Text, refererUrl, strings.TrimSpace(dname), colIndex, rowIndex, newXlsxWithPic, func(furl string) {
-						fprogress.SetValue(fprogress.Value + 1)
-					})
-					if err != nil {
-						CheckError(fmt.Errorf("下载错误(%v)", err), w)
-						return
-					}
-					isRunning = false
-					dialog.NewInformation("提示", "下载完成", w).Show()
-				}()
+				dialog.NewInformation("提示", "下载完成", w).Show()
 			}
 		}, w).Show()
 	}
-
+	// mainForm.CancelText = "取消"
 	// mainForm.OnCancel = func() {
-	// 	if isRunning {
+	// 	if !isRunning {
+	// 		CheckError(fmt.Errorf("下载未开始，无法取消"), w)
+	// 		return
+	// 	}
 	// 		dialog.NewConfirm("取消下载", "操作正在进行中，确认取消下载？", func(b bool) {
 	// 			if b {
-	// 				go func() {
 	// 					fmt.Println("---send ctx Cancel-----")
 	// 					cancel()
-	// 				}()
 	// 			}
 	// 		}, w).Show()
-	// 	} else {
-	// 		CheckError(fmt.Errorf("下载未开始，无法取消"), w)
-	// 	}
 	// }
-	// mainForm.CancelText = "取消"
 
 	filePicker := widget.NewButton("[选择xlsx文件]", func() {
 		filename, err := sqdialog.File().Filter("Excel表格(*.xlsx)", "xlsx").Load()
