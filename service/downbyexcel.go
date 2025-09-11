@@ -108,9 +108,12 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 	// }
 
 	// AddPicture 不指定图片栏列宽度，图片无法填满整个单元格
-	f.SetColWidth(sheetName, string(colI), string(colI), 11)
+	f.SetColWidth(sheetName, string(colI), string(colI), float64(colWidth))
 
 	for _, excelImg := range excelImages {
+		if excelImg.LocalPath == "" {
+			continue
+		}
 		f.SetCellValue(sheetName, excelImg.Axis, "")
 		imgopts := &excelize.GraphicOptions{AutoFit: true, LockAspectRatio: true, HyperlinkType: "External"}
 		if imgwebpage {

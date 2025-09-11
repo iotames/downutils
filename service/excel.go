@@ -21,9 +21,8 @@ type ExcelService struct {
 
 // NewExcelService
 //
-// f, _ := excelize.OpenFile(filepath)
-//
-// updateExcel := service.NewExcelService(f) OR service.NewExcelService(excelize.NewFile()) OR service.NewExcelService(nil)
+//	f, _ := excelize.OpenFile(filepath)
+//	updateExcel := service.NewExcelService(f) OR service.NewExcelService(excelize.NewFile()) OR service.NewExcelService(nil)
 func NewExcelService(excelFile *excelize.File) *ExcelService {
 	if excelFile == nil {
 		excelFile = excelize.NewFile()
