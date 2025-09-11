@@ -18,7 +18,7 @@ import (
 	_ "golang.org/x/image/webp"
 )
 
-func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowIndex int, baseUrl, dirname string, callback func(excelImage ExcelImage) ExcelImage) error {
+func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowIndex int, baseUrl, dirname string, setLocalPath func(excelImage *ExcelImage)) error {
 	f := e.ExcelFile
 	cols, err := f.Cols(sheetName)
 	if err != nil {
@@ -52,7 +52,6 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 	imgwebpage := conf.ImageWebpage
 
 	// 遍历数据列
-	imgTitleExist := false
 	fmt.Printf("------setLocalImagesByIndex---countttt(%d)--colI(%s)--colIndex(%d)--rowIndex(%d)---\n", countttt, string(colI), colIndex, rowIndex)
 	var colCount int = 1
 	for cols.Next() {
@@ -70,7 +69,6 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 				return err
 			}
 			// dt = col[rowIndex-1:]
-			imgTitleExist = true
 
 			rowI := 1
 			f.SetColWidth(sheetName, fmt.Sprintf("%c", colI), fmt.Sprintf("%c", colI), float64(colWidth))
@@ -78,6 +76,7 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 				f.SetRowHeight(sheetName, rowI, float64(colHeiht))
 
 				if rowI < rowIndex {
+					// 下载起始行数之前的数据一律跳过
 					rowI++
 					continue
 				}
@@ -85,7 +84,13 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 				fileurl := strings.TrimSpace(cell)
 				fmt.Printf("\n----setLocalImagesByIndex--axis(%s)--fileurl(%s)----\n", axis, fileurl)
 				excelImg := ExcelImage{Axis: axis, Url: fileurl}
-				excelImg = callback(excelImg)
+				if fileurl == "" {
+					excelImg.LocalPath = ""
+				} else {
+					// 设置excelImg.LocalPath
+					setLocalPath(&excelImg)
+				}
+
 				excelImages = append(excelImages, excelImg)
 
 				// f.SetCellValue(sheetName, axis, excelImg.LocalPath)
@@ -97,10 +102,10 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 		colCount++
 
 	}
-	if !imgTitleExist {
-		log.Println("imgTitle is not Exist")
-		return fmt.Errorf("excel文件里%d列%d行，无法下载图片", colIndex, rowIndex)
-	}
+	// if len(excelImages) == 0 {
+	// 	log.Println("imgTitle is not Exist")
+	// 	return fmt.Errorf("excel文件里%d列%d行开始，找不到任何有效的下载链接", colIndex, rowIndex)
+	// }
 
 	// AddPicture 不指定图片栏列宽度，图片无法填满整个单元格
 	f.SetColWidth(sheetName, string(colI), string(colI), 11)
@@ -206,21 +211,20 @@ func (e *ExcelService) DownloadImagesByCollyLocation(sheetName, referer, dirname
 			if sheetName != "" && strings.TrimSpace(sn) != strings.TrimSpace(sheetName) {
 				continue
 			}
-			res := e.setLocalImagesByIndex(sn, colIndex, rowIndex, baseUrl, dirname, func(excelImg ExcelImage) ExcelImage {
+			res := e.setLocalImagesByIndex(sn, colIndex, rowIndex, baseUrl, dirname, func(excelImg *ExcelImage) {
 				imgurl := excelImg.Url
-				filepath := spd.GetLocalFile(imgurl, dirname, LOCAL_IMAGE_FILE_EXT)
-				excelImg.LocalPath = filepath
 				// log.Printf("---ReadRow--DownloadImagesByColly-debug-sheetName(%s)--imgurl(%s)--filepath(%s)----", sn, imgurl, filepath)
 				if imgurl == "" {
 					log.Println("Skip: DownloadImagesByColly Request: DownloadUrl is empty----------------")
-					return excelImg
+					return
 				}
+				filepath := spd.GetLocalFile(imgurl, dirname, LOCAL_IMAGE_FILE_EXT)
+				excelImg.LocalPath = filepath
 				isExist := miniutils.IsPathExists(filepath)
 				if isExist {
 					log.Println("Skip: DownloadImagesByColly Request: filepath is exist---", filepath)
-					return excelImg
+					return
 				}
-				return excelImg
 			})
 			if res != nil {
 				result = res

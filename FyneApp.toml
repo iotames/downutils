@@ -2,4 +2,4 @@
   Icon = "resource/images/logo.png"
   Name = "DownUtils"
   ID = "io.github.iotames.downutils"
-  Build = 3
+  Build = 4
