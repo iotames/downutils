@@ -14,7 +14,7 @@ const DEFAULT_DB_PASSWORD = "root"
 const DEFAULT_DB_NODE_ID = 1
 
 const DEFAULT_HTTP_PROXY = ""
-const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
+const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
 const DEFAULT_TIMEOUT = 20
 const DEFAULT_RETRY_TIMES = 3
 const DEFAULT_DELAY = 1

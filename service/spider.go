@@ -42,6 +42,10 @@ type SiteSpider struct {
 	// collyCtx        *colly.Context
 }
 
+func (s SiteSpider) GetCookie() string {
+	return s.sconf.Cookie
+}
+
 func (s SiteSpider) GetSiteUrl() string {
 	return s.BaseUrl
 }

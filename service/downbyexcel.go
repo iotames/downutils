@@ -143,12 +143,17 @@ func (e *ExcelService) DownloadImagesByCollyLocation(sheetName, referer, dirname
 	}
 	spd := NewSpider(dirname)
 	baseUrl := miniutils.GetBaseUrl(referer)
+	referer = baseUrl + "/"
 	spd.BaseUrl = baseUrl
 	c := spd.GetCollector()
 	spd.SetAsyncAndLimit(c, ".")
 
 	c.OnRequest(func(r *colly.Request) {
-		r.Headers.Set("referer", baseUrl+"/")
+		r.Headers.Set("referer", referer)
+		if spd.GetCookie() != "" {
+			log.Println("-----DownloadImagesByCollyLocation--SetCookie---:", spd.GetCookie())
+			r.Headers.Set("cookie", spd.GetCookie())
+		}
 	})
 
 	c.OnResponse(func(r *colly.Response) {
