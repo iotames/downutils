@@ -109,7 +109,7 @@ func (e *ExcelService) ReadRows(sheetKey interface{}, callback func(rowData map[
 }
 
 // GetColDataBegin 获取数据列的内容
-func (e ExcelService) GetColsBegin(sheetName string, colIndex, rowIndex int) (dt []string, err error) {
+func (e ExcelService) GetColsDataByIndex(sheetName string, colIndex, rowIndex int) (dt []string, err error) {
 	f := e.ExcelFile
 	var cols *excelize.Cols
 	cols, err = f.Cols(sheetName)
@@ -131,7 +131,7 @@ func (e ExcelService) GetColsBegin(sheetName string, colIndex, rowIndex int) (dt
 			fmt.Printf("----遍历列(%d)失败(%v)------\n", colCount, err)
 			break
 		}
-		fmt.Printf("-------GetColsBegin------colCount%d == colIndex %d---------\n", colCount, colIndex)
+		fmt.Printf("-------GetColsDataByIndex------colCount%d == colIndex %d---------\n", colCount, colIndex)
 		if colCount == colIndex {
 			// 定位到开始的列
 			fmt.Printf("-------colCount(%d)---rowIndex(%d)---col(%+v)--\n", colIndex, rowIndex, col)
@@ -142,7 +142,7 @@ func (e ExcelService) GetColsBegin(sheetName string, colIndex, rowIndex int) (dt
 			}
 			rowBegin := rowIndex - 1
 			dt = col[rowBegin:]
-			fmt.Printf("----GetColsBegin--rowBegin(%d)--dt(%v)-----\n", rowBegin, dt)
+			fmt.Printf("----GetColsDataByIndex--rowBegin(%d)--dt(%v)-----\n", rowBegin, dt)
 			break
 		}
 		colCount++
@@ -192,8 +192,6 @@ func (e *ExcelService) Save() error {
 	return e.ExcelFile.Save()
 }
 
-// TODO Wait download before save excel
-// --downloadimages=\"runtime/hello.xlsx,Sheet1,图片,https://www.amazon.com,amazon\"
 func DownloadImagesByExcel(filepath, sheetName, referer, dirname string, colIndex, rowIndex int, withImgFile bool, onResp func(furl string)) error {
 	// 下载图片并另存xlsx文件
 	f, err := excelize.OpenFile(filepath)
@@ -218,7 +216,7 @@ func DownloadImagesByExcel(filepath, sheetName, referer, dirname string, colInde
 	return nil
 }
 
-func GetImgsByExcel(filepath, sheetName, imgTtile string) (imgs []string, err error) {
+func GetImgsByExcelTitle(filepath, sheetName, imgTtile string) (imgs []string, err error) {
 	var f *excelize.File
 	f, err = excelize.OpenFile(filepath)
 	if err != nil {
@@ -261,7 +259,7 @@ func GetImgsByExcelIndex(filepath, sheetName string, colIndex, rowIndex int) (im
 		if sheetName != "" && strings.TrimSpace(sn) != strings.TrimSpace(sheetName) {
 			continue
 		}
-		cols, errc := ec.GetColsBegin(sn, colIndex, rowIndex)
+		cols, errc := ec.GetColsDataByIndex(sn, colIndex, rowIndex)
 		if errc != nil {
 			err = errc
 			break

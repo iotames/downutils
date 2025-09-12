@@ -18,6 +18,13 @@ import (
 	_ "golang.org/x/image/webp"
 )
 
+func itoa(i int) string {
+	startA := 'A'
+	runeVal := startA + rune(i-1)
+	// return fmt.Sprintf("%c", runeVal)
+	return string(runeVal)
+}
+
 func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowIndex int, baseUrl, dirname string, setLocalPath func(excelImage *ExcelImage)) error {
 	f := e.ExcelFile
 	cols, err := f.Cols(sheetName)
@@ -25,15 +32,7 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 		return err
 	}
 
-	colI := 'A'
-	countttt := 1
-	for {
-		if countttt == colIndex {
-			break
-		}
-		colI++
-		countttt += 1
-	}
+	colIndexStr := itoa(colIndex)
 
 	var excelImages []ExcelImage
 
@@ -52,7 +51,6 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 	imgwebpage := conf.ImageWebpage
 
 	// 遍历数据列
-	fmt.Printf("------setLocalImagesByIndex---countttt(%d)--colI(%s)--colIndex(%d)--rowIndex(%d)---\n", countttt, string(colI), colIndex, rowIndex)
 	var colCount int = 1
 	for cols.Next() {
 		col, err := cols.Rows()
@@ -71,8 +69,8 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 			// dt = col[rowIndex-1:]
 
 			rowI := 1
-			f.SetColWidth(sheetName, fmt.Sprintf("%c", colI), fmt.Sprintf("%c", colI), float64(colWidth))
 			for _, cell := range col {
+				// 开始遍历图片链接数据列的数据
 				f.SetRowHeight(sheetName, rowI, float64(colHeiht))
 
 				if rowI < rowIndex {
@@ -80,9 +78,9 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 					rowI++
 					continue
 				}
-				axis := fmt.Sprintf("%c%d", colI, rowI)
+				axis := fmt.Sprintf("%s%d", colIndexStr, rowI)
 				fileurl := strings.TrimSpace(cell)
-				fmt.Printf("\n----setLocalImagesByIndex--axis(%s)--fileurl(%s)----\n", axis, fileurl)
+				// fmt.Printf("\n----setLocalImagesByIndex--axis(%s)--fileurl(%s)----\n", axis, fileurl)
 				excelImg := ExcelImage{Axis: axis, Url: fileurl}
 				if fileurl == "" {
 					excelImg.LocalPath = ""
@@ -108,21 +106,19 @@ func (e *ExcelService) setLocalImagesByIndex(sheetName string, colIndex, rowInde
 	// }
 
 	// AddPicture 不指定图片栏列宽度，图片无法填满整个单元格
-	f.SetColWidth(sheetName, string(colI), string(colI), float64(colWidth))
+	f.SetColWidth(sheetName, string(colIndexStr), string(colIndexStr), float64(colWidth))
+	fmt.Printf("------setLocalImagesByIndex--sheetName(%s)--colIndex(%d)(%s)--rowIndex(%d)-width(%.2f)-----\n", sheetName, colIndex, colIndexStr, rowIndex, float64(colWidth))
 
 	for _, excelImg := range excelImages {
 		if excelImg.LocalPath == "" {
 			continue
 		}
 		f.SetCellValue(sheetName, excelImg.Axis, "")
-		imgopts := &excelize.GraphicOptions{AutoFit: true, LockAspectRatio: true, HyperlinkType: "External"}
+		imgopts := &excelize.GraphicOptions{AutoFit: true, LockAspectRatio: true, HyperlinkType: "External", ScaleX: 1, ScaleY: 1}
 		if imgwebpage {
 			imgopts.Hyperlink = excelImg.Url
 		}
-		err := f.AddPicture(sheetName, excelImg.Axis, excelImg.LocalPath,
-			// `{"x_scale": 0.2, "y_scale": 0.2}`,
-			imgopts,
-		)
+		err := f.AddPicture(sheetName, excelImg.Axis, excelImg.LocalPath, imgopts)
 		// fmt.Println(excelImg)
 		if err != nil {
 			fmt.Println("-------AddPicture---Error: ", err, excelImg.LocalPath)
@@ -178,7 +174,7 @@ func (e *ExcelService) DownloadImagesByCollyLocation(sheetName, referer, dirname
 			continue
 		}
 		var imgs []string
-		imgs, err = e.GetColsBegin(sn, colIndex, rowIndex)
+		imgs, err = e.GetColsDataByIndex(sn, colIndex, rowIndex)
 		if err != nil {
 			return fmt.Errorf("DownloadImagesByCollyLocation获取列数据失败：%v", err)
 		}
